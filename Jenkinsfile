@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    DOCKERHUB_USER = "TU_USUARIO_DOCKERHUB"
+    DOCKERHUB_USER = "samuelgs15"
     BACKEND_IMAGE  = "${DOCKERHUB_USER}/patient-backend"
     FRONTEND_IMAGE = "${DOCKERHUB_USER}/patient-frontend"
     SONAR_HOST_URL = "http://sonarqube:9000"
@@ -88,3 +88,4 @@ pipeline {
     }
   }
 }
+
