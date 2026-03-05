@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: patient_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: patientdb
+      MYSQL_USER: patient
+      MYSQL_PASSWORD: patient
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./backend/patients-backend
+    container_name: patient_backend
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/patientdb
+      SPRING_DATASOURCE_USERNAME: patient
+      SPRING_DATASOURCE_PASSWORD: patient
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  frontend:
+    build:
+      context: ./frontend/patients-frontend
+    container_name: patient_frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  mysql_data:
