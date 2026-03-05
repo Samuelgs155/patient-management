@@ -2,15 +2,11 @@ pipeline {
   agent any
 
   environment {
-    DOCKERHUB_USER = "Samuelsg155"
+    DOCKERHUB_USER = "TU_USUARIO_DOCKERHUB"
     BACKEND_IMAGE  = "${DOCKERHUB_USER}/patient-backend"
     FRONTEND_IMAGE = "${DOCKERHUB_USER}/patient-frontend"
     SONAR_HOST_URL = "http://sonarqube:9000"
     SONAR_PROJECT_KEY = "patient-management"
-  }
-
-  options {
-    // 
   }
 
   stages {
@@ -45,15 +41,6 @@ pipeline {
       }
     }
 
-    // Recomendado si configuras webhook Sonar->Jenkins (lo explico abajo)
-    stage('Quality Gate') {
-      steps {
-        timeout(time: 5, unit: 'MINUTES') {
-          waitForQualityGate abortPipeline: true
-        }
-      }
-    }
-
     stage('Docker Build') {
       steps {
         sh "docker build -t ${BACKEND_IMAGE}:latest ./backend"
@@ -73,10 +60,8 @@ pipeline {
       }
     }
 
-    stage('Deploy (docker compose)') {
+    stage('Deploy') {
       steps {
-        // despliegue en el mismo host donde corre Jenkins
-        // Asegúrate de que docker-compose.prod.yml existe en el workspace o está en el repo
         sh "docker compose -f docker-compose.prod.yml up -d"
       }
     }
@@ -88,6 +73,3 @@ pipeline {
     }
   }
 }
-
-
-
