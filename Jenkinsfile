@@ -18,25 +18,29 @@ pipeline {
 
     stage('Backend - Tests') {
       steps {
-        dir('backend') {
-          sh 'mvn -B clean test'
-        }
+        sh '''
+          docker run --rm \
+            -v "$PWD/backend":/app \
+            -w /app \
+            maven:3.9-eclipse-temurin-17 \
+            mvn -B clean test
+        '''
       }
     }
 
     stage('SonarQube - Analyze (Backend)') {
       steps {
-        dir('backend') {
-          withSonarQubeEnv('SonarQube') {
-            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-              sh """
-                mvn -B sonar:sonar \
-                  -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                  -Dsonar.host.url=${SONAR_HOST_URL} \
-                  -Dsonar.login=$SONAR_TOKEN
-              """
-            }
-          }
+        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+          sh """
+            docker run --rm \
+              -v "\$PWD/backend":/app \
+              -w /app \
+              maven:3.9-eclipse-temurin-17 \
+              mvn -B sonar:sonar \
+                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                -Dsonar.host.url=${SONAR_HOST_URL} \
+                -Dsonar.login=\$SONAR_TOKEN
+          """
         }
       }
     }
@@ -73,3 +77,4 @@ pipeline {
     }
   }
 }
+
