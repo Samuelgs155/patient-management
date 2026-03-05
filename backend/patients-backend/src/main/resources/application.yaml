@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: patients-backend
+
+  datasource:
+    url: jdbc:mysql://localhost/db_rest_services?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: create-drop
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.hibernate.SQL: debug
