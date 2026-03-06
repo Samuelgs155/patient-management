@@ -44,10 +44,11 @@ pipeline {
         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
           sh '''
             docker run --rm \
-              --volumes-from ${JENKINS_CONTAINER} \
+              --network devops_devops \
+              --volumes-from jenkins \
               -w ${BACKEND_DIR} \
               maven:3.9-eclipse-temurin-17 \
-              mvn -B sonar:sonar \
+              mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
                 -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                 -Dsonar.host.url=${SONAR_HOST_URL} \
                 -Dsonar.login=${SONAR_TOKEN}
@@ -88,3 +89,4 @@ pipeline {
     }
   }
 }
+
