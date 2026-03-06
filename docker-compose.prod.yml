@@ -1,7 +1,4 @@
-version: "3.8"
-
 services:
-
   mysql:
     image: mysql:8.4
     container_name: patient_mysql
@@ -17,9 +14,9 @@ services:
       - mysql_data:/var/lib/mysql
 
   backend:
-    build:
-      context: ./backend/patients-backend
+    image: samuelgs155/patient-backend:latest
     container_name: patient_backend
+    restart: always
     depends_on:
       - mysql
     ports:
@@ -31,9 +28,9 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
   frontend:
-    build:
-      context: ./frontend/patients-frontend
+    image: samuelgs155/patient-frontend:latest
     container_name: patient_frontend
+    restart: always
     depends_on:
       - backend
     ports:
