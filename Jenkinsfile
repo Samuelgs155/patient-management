@@ -66,6 +66,8 @@ pipeline {
 
     stage('Deploy') {
       steps {
+        sh 'docker-compose -f docker-compose.prod.yml down || true'
+        sh 'docker-compose -f docker-compose.prod.yml pull'
         sh 'docker-compose -f docker-compose.prod.yml up -d'
       }
     }
@@ -77,4 +79,5 @@ pipeline {
     }
   }
 }
+
 
