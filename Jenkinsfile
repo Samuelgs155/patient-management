@@ -10,12 +10,6 @@ pipeline {
   }
 
   stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
-    }
-
     stage('Debug - find pom.xml') {
       steps {
         sh '''
@@ -31,11 +25,11 @@ pipeline {
       }
     }
 
-    stage('Backend - Tests') {
+     stage('Backend - Tests') {
       steps {
         sh '''
           docker run --rm \
-            -v "$PWD/backend/patient-management":/app \
+            -v "$PWD/backend/patients-backend":/app \
             -w /app \
             maven:3.9-eclipse-temurin-17 \
             mvn -B clean test
@@ -48,12 +42,12 @@ pipeline {
         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
           sh """
             docker run --rm \
-              -v "\$PWD/backend":/app \
+              -v "\$PWD/backend/patients-backend":/app \
               -w /app \
               maven:3.9-eclipse-temurin-17 \
               mvn -B sonar:sonar \
-                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                -Dsonar.host.url=${SONAR_HOST_URL} \
+                -Dsonar.projectKey=patient-management \
+                -Dsonar.host.url=http://sonarqube:9000 \
                 -Dsonar.login=\$SONAR_TOKEN
           """
         }
@@ -92,6 +86,7 @@ pipeline {
     }
   }
 }
+
 
 
 
