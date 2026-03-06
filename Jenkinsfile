@@ -16,6 +16,21 @@ pipeline {
       }
     }
 
+    stage('Debug - find pom.xml') {
+      steps {
+        sh '''
+          echo "=== LIST ROOT ==="
+          ls -la
+          echo "=== FIND pom.xml ==="
+          find . -maxdepth 5 -name pom.xml -print
+          echo "=== LIST backend ==="
+          ls -la backend || true
+          echo "=== TREE backend (2 niveles) ==="
+          find backend -maxdepth 3 -type d -print || true
+        '''
+      }
+    }
+
     stage('Backend - Tests') {
       steps {
         sh '''
@@ -77,5 +92,6 @@ pipeline {
     }
   }
 }
+
 
 
