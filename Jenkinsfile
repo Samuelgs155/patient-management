@@ -2,11 +2,13 @@ pipeline {
   agent any
 
   environment {
-    DOCKERHUB_USER = "TU_USUARIO_DOCKERHUB"
-    BACKEND_IMAGE  = "${DOCKERHUB_USER}/patient-backend"
-    FRONTEND_IMAGE = "${DOCKERHUB_USER}/patient-frontend"
-    SONAR_HOST_URL = "http://sonarqube:9000"
+    DOCKERHUB_USER   = "TU_USUARIO_DOCKERHUB"
+    BACKEND_IMAGE    = "${DOCKERHUB_USER}/patient-backend"
+    FRONTEND_IMAGE   = "${DOCKERHUB_USER}/patient-frontend"
+    SONAR_HOST_URL   = "http://sonarqube:9000"
     SONAR_PROJECT_KEY = "patient-management"
+    JENKINS_CONTAINER = "jenkins"
+    BACKEND_DIR      = "/var/jenkins_home/workspace/patient-management-pipeline/backend/patients-backend"
   }
 
   stages {
@@ -25,12 +27,12 @@ pipeline {
       }
     }
 
-     stage('Backend - Tests') {
+    stage('Backend - Tests') {
       steps {
         sh '''
           docker run --rm \
-            -v "$PWD/backend/patients-backend":/app \
-            -w /app \
+            --volumes-from ${JENKINS_CONTAINER} \
+            -w ${BACKEND_DIR} \
             maven:3.9-eclipse-temurin-17 \
             mvn -B clean test
         '''
@@ -40,23 +42,23 @@ pipeline {
     stage('SonarQube - Analyze (Backend)') {
       steps {
         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-          sh """
+          sh '''
             docker run --rm \
-              -v "\$PWD/backend/patients-backend":/app \
-              -w /app \
+              --volumes-from ${JENKINS_CONTAINER} \
+              -w ${BACKEND_DIR} \
               maven:3.9-eclipse-temurin-17 \
               mvn -B sonar:sonar \
-                -Dsonar.projectKey=patient-management \
-                -Dsonar.host.url=http://sonarqube:9000 \
-                -Dsonar.login=\$SONAR_TOKEN
-          """
+                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                -Dsonar.host.url=${SONAR_HOST_URL} \
+                -Dsonar.login=${SONAR_TOKEN}
+          '''
         }
       }
     }
 
     stage('Docker Build') {
       steps {
-        sh "docker build -t ${BACKEND_IMAGE}:latest ./backend"
+        sh "docker build -t ${BACKEND_IMAGE}:latest ./backend/patients-backend"
         sh "docker build -t ${FRONTEND_IMAGE}:latest ./frontend/patients-frontend"
       }
     }
@@ -64,18 +66,18 @@ pipeline {
     stage('Docker Push') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
-          sh """
+          sh '''
             echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
             docker push ${BACKEND_IMAGE}:latest
             docker push ${FRONTEND_IMAGE}:latest
-          """
+          '''
         }
       }
     }
 
     stage('Deploy') {
       steps {
-        sh "docker compose -f docker-compose.prod.yml up -d"
+        sh 'docker compose -f docker-compose.prod.yml up -d'
       }
     }
   }
@@ -86,7 +88,3 @@ pipeline {
     }
   }
 }
-
-
-
-
